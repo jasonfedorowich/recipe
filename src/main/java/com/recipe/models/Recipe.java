@@ -17,6 +17,7 @@ public class Recipe {
     private String source;
     private String url;
     private String directions;
+    private Integer cookTime;
 
     @ManyToMany
     @JoinTable(name = "recipe_category",
@@ -36,6 +37,14 @@ public class Recipe {
 
     @Lob
     private Byte[] image;
+
+    public Integer getCookTime() {
+        return cookTime;
+    }
+
+    public void setCookTime(Integer cookTime) {
+        this.cookTime = cookTime;
+    }
 
     public Set<Category> getCategories() {
         return categories;
@@ -123,6 +132,8 @@ public class Recipe {
 
     public void setNotes(Note notes) {
         this.notes = notes;
+        if(notes == null)
+            return;
         notes.setRecipe(this);
     }
 

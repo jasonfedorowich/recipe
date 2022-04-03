@@ -26,6 +26,10 @@ public class Ingredient {
         this.recipe = recipe;
     }
 
+    public Ingredient() {
+
+    }
+
     public Long getId() {
         return id;
     }
