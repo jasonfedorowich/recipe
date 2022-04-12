@@ -1,6 +1,9 @@
 package com.recipe.controllers;
 
 import com.recipe.commands.RecipeCommand;
+import com.recipe.converters.RecipeCommandToRecipe;
+import com.recipe.converters.RecipeToRecipeCommand;
+import com.recipe.exceptions.NotFoundException;
 import com.recipe.models.Recipe;
 import com.recipe.repositories.RecipeRepository;
 import com.recipe.services.RecipeService;
@@ -10,13 +13,19 @@ import org.junit.jupiter.api.Assertions;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.data.crossstore.ChangeSetPersister;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.servlet.ModelAndView;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import static org.mockito.Mockito.*;
@@ -38,18 +47,45 @@ public class IndexControllerTest {
     @Mock
     Model model;
 
-    @Mock
-    RecipeService recipeService;
 
     @Mock
     RecipeRepository recipeRepository;
+
+    @Mock
+    RecipeCommandToRecipe recipeCommandToRecipe;
+
+    @Mock
+    RecipeToRecipeCommand recipeToRecipeCommand;
+
+    @Mock
+    RecipeService recipeService;
+
 
     RecipeController recipeController;
 
     @Before
     public void init(){
         MockitoAnnotations.openMocks(this);
+
         recipeController = new RecipeController(recipeService);
+    }
+
+    @Test(expected = NotFoundException.class)
+    public void getRecipeByIdTestNotFound(){
+        recipeService = new RecipeService(recipeRepository, recipeCommandToRecipe, recipeToRecipeCommand);
+        Optional<Recipe> optional = Optional.empty();
+        when(recipeRepository.findById(anyLong())).thenReturn(optional);
+        Recipe recipe = recipeService.findById(1L);
+
+    }
+
+    @Test
+    public void testNotFound() throws Exception {
+        when(recipeService.findById(anyLong())).thenThrow(NotFoundException.class);
+        MockMvc mockMvc = MockMvcBuilders.standaloneSetup(recipeController).build();
+
+        mockMvc.perform(get("/recipes/1")).andExpect(status().isNotFound());
+
     }
 
     @Test

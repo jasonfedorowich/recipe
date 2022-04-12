@@ -3,6 +3,7 @@ package com.recipe.services;
 import com.recipe.commands.RecipeCommand;
 import com.recipe.converters.RecipeCommandToRecipe;
 import com.recipe.converters.RecipeToRecipeCommand;
+import com.recipe.exceptions.NotFoundException;
 import com.recipe.models.Recipe;
 import com.recipe.repositories.RecipeRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -36,9 +37,9 @@ public class RecipeService {
 
     public Recipe findById(Long id){
         Optional<Recipe> recipeOptional = recipeRepository.findById(id);
-        if(recipeOptional.isEmpty())
-            throw new RuntimeException("Id not found");
-        return recipeOptional.orElse(null);
+        if(!recipeOptional.isPresent())
+            throw new NotFoundException("Not Found");
+        return recipeOptional.get();
 
     }
 
@@ -60,5 +61,13 @@ public class RecipeService {
 
     public void deleteById(Long id) {
         recipeRepository.deleteById(id);
+    }
+
+    public void deleteFromRecipeByIngId(Long rid, Long iid) {
+        Recipe recipe = recipeRepository.findById(rid).orElse(null);
+        if(recipe == null)
+            return;
+        recipe.getIngredients().removeIf(ingredient -> ingredient.getId().equals(iid));
+        recipeRepository.save(recipe);
     }
 }
